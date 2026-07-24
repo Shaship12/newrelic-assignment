@@ -1,49 +1,44 @@
 # Team Update - Slack message
 
-Post in `#eng-deploys` (or your team's equivalent channel):
+Post in `#eng-deploys`:
 
 ---
 
 **🚀 Deploying: URL Shortener service (new)**
 
-**What:** Shipping a small internal URL-shortener API (`POST /urls`,
-`GET /{code}`) - Lambda + API Gateway + DynamoDB, all via Terraform.
-Why: [fill in the actual internal use case here, e.g. "so we can send
-shorter links in SMS notifications"].
+**What & why:** Shipping a small internal URL-shortener API (`POST /urls` to create a short link, `GET /{code}` to redirect) — Lambda + API Gateway + DynamoDB, provisioned with Terraform. Built so we can use short, trackable links in outbound notifications instead of long raw URLs.
 
 **Impact:**
-- New service, no existing traffic/endpoints affected.
-- No downtime - this is a net-new stack, nothing being replaced.
-- Public write endpoint has **no auth yet** (see Risks below) - please
-  don't rely on it for anything sensitive until that lands.
+- New service, no existing endpoints or traffic affected — nothing being replaced.
+- No downtime expected; this is a net-new stack.
+- ⚠️ `POST /urls` has **no auth yet** — don't point anything sensitive at it until auth lands (tracked as a fast-follow, see Risks below).
 
 **Timeline:**
-- Plan reviewed + approved: [date]
-- Deploying to `dev`: [date/time]
-- Deploying to `staging`: [date/time, pending dev soak]
-- Deploying to `prod`: [date/time, pending staging validation + approval]
+- Terraform plan reviewed + approved: today
+- `dev`: deploying now
+- `staging`: after ~2 days soak in dev with no errors
+- `prod`: after staging validation, gated behind manual approval in the pipeline
 
 **Links:**
-- PR: [link]
-- Runbook: `RUNBOOK.md` in this repo
-- Architecture / decisions: `README.md` in this repo
-- CI run (Terraform plan): [Actions run link]
-- Monitoring: CloudWatch Logs `/aws/lambda/url-shortener-<env>` (dashboard link once one exists)
+- PR: `<add PR link here>`
+- Runbook (deploy/rollback/troubleshooting steps): [`RUNBOOK.md`](./RUNBOOK.md)
+- Architecture & design decisions: [`README.md`](./README.md)
+- CI run (Terraform plan output): `<add Actions run link here>`
+- Monitoring: CloudWatch Logs at `/aws/lambda/url-shortener-<env>` (dashboard link once one exists — tracked as a fast-follow)
 
 **Risks / known gaps:**
-- `POST /urls` is unauthenticated for now - anyone with the endpoint can
-  create short links. Auth is on the follow-up list, not blocking this
-  deploy since it's internal/low-traffic to start.
-- No custom domain yet - links use the raw API Gateway URL.
-- No alarms wired up yet (CloudWatch Logs only, no paging) - will add
-  before this handles anything customer-facing.
+- No auth on the create endpoint yet — internal/low-traffic only for now.
+- No custom domain — links use the raw API Gateway URL until DNS/ACM is added.
+- No alarms/paging wired up yet — logs only. Will add before this is customer-facing.
 
-**Questions / issues:** ping me here or DM @[your name]. For anything
-urgent once it's live, follow the normal on-call path - see `RUNBOOK.md`
-section 8.
+**Questions or issues:** ping me in this channel, or DM me directly. For a live incident once this is in `prod`, follow our normal on-call path (see `RUNBOOK.md` §8).
 
 ---
 
-*Note on format: this is intentionally short and scannable - engineers
-can click into the PR/plan for detail, PMs/support get the "what and why"
-in the first two lines without needing to read Terraform.*
+## Why this format
+
+**Communicating to a mixed audience (engineers, PMs, support):** the first two lines (What & why, Impact) are written so a non-engineer gets the full picture without reading anything else — no Terraform jargon, no resource names, just "what changed and does it affect you." Everyone past that point is opting into more depth.
+
+**Scannable, not paragraphs:** every section is a short bulleted list with a bolded label, so someone skimming on their phone gets the shape of the update in a few seconds — timeline, risks, and contact are each one glance away, not buried in prose.
+
+**Depth on demand:** the Links section is the "for more detail" escape hatch — engineers who want the actual Terraform diff go to the PR/CI run, anyone debugging a live issue goes to the Runbook, anyone curious about *why* it's built this way goes to the README. Nobody has to read all three to get the update; they're there for whoever needs to go deeper.
